@@ -1,0 +1,84 @@
+@startuml Pooh
+
+note top of CASMap
+This class demonstrates the uage of a 'ConcurrentHashMap'
+and 'ConcurrentLinkedQueue' to store and manipulate data in
+a thread-safe manner.
+end note
+Class CASMap {
+    Map<String, ConcurrentLinkedQueue<String>> queue = new ConcurrentHashMap<>();
+    String name = "weather";
+    queue.putIfAbsent(name, new ConcurrentLinkedQueue<>());
+    queue.get(name).add("value");
+    var text = queue.getOrDefault(name, new ConcurrentLinkedQueue<>()).poll();
+}
+
+
+note top of PoohServer
+This is main server that handles incoming client requests;
+end note
+Class PoohServer {
+    private final HashMap<String, Service> modes = new HashMap<>();
+    void start();
+    void main();
+}
+
+note bottom of QueueService
+Serivce that handles queue-based messaging.
+It adds or retrieves messages.
+end note
+
+Class QueueService implements Service {
+    private final ConcurrentMap<String, ConcurrentLinkedQueue<String>> queue = new ConcurrentHashMap<>();
+    Resp process();
+}
+
+note bottom of TopicService
+Service that handles topic-based messaging
+end note
+Class TopicService implements Service {
+    private final ConcurrentMap<String, ConcurrentLinkedQueue<String>> topics = new ConcurrentHashMap<>();
+    Resp process()
+    void addToTopic()
+    String removeFromTopic()
+}
+
+note top of Req
+This class represents a parsed HTTP request.
+end note
+Class Req {
+    private final String httpRequestType;
+    private final String poohMode;
+    private final String sourceName;
+    private final String param;
+    Req of()
+    String httpRequestType()
+    String getPoohMode()
+    String getSourceName()
+    String getParam()
+}
+
+note top of Resp
+This class represents a response to be sent back to the client.
+end note
+Class Resp {
+    private final String text;
+    private final String status;
+    String text()
+    String status()
+}
+
+note top of Service
+This inderface defines the contract for different service implementations
+end note
+Interface Service {
+    Resp process()
+}
+
+note as N1
+<b>Pooh service</b>
+
+
+end note
+
+@enduml
