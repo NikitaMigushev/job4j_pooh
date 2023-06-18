@@ -18,11 +18,7 @@ public class QueueService implements Service {
         } else if ("GET".equals(req.httpRequestType())) {
             ConcurrentLinkedQueue<String> messages = queue.getOrDefault(sourceName, new ConcurrentLinkedQueue<>());
             String message = messages.poll();
-            if (message != null) {
-                return new Resp(message, "200");
-            } else {
-                return new Resp("Queue is empty", "200");
-            }
+            return message != null ? new Resp(message, "200") : new Resp("Queue is empty", "200");
         }
         return new Resp("Invalid request", "400");
     }

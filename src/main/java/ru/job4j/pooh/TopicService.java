@@ -17,23 +17,19 @@ public class TopicService implements Service {
             return new Resp(String.format("source name: %s, param: %s", req.getSourceName(), req.getParam()), "200");
         } else if ("GET".equals(req.httpRequestType())) {
             String message = removeFromTopic(topicName);
-            if (message != null) {
-                return new Resp(message, "200");
-            } else {
-                return new Resp("", "200");
-            }
+            return message != null ? new Resp(message, "200") : new Resp("", "200");
         }
-
         return new Resp("Invalid request", "400");
     }
 
     private void addToTopic(String topicName, String message) {
         topics.putIfAbsent(topicName, new ConcurrentLinkedQueue<>());
-        topics.get(topicName).add(message);
+        ConcurrentLinkedQueue<String> topic = topics.get(topicName);
+        topic.offer(message);
     }
 
     private String removeFromTopic(String topicName) {
-        ConcurrentLinkedQueue<String> topic = topics.get(topicName);
+        ConcurrentLinkedQueue<String> topic = topics.getOrDefault(topicName, null);
         if (topic != null) {
             return topic.poll();
         }
