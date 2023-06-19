@@ -5,33 +5,43 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
 public class TopicService implements Service {
-    private final ConcurrentMap<String, ConcurrentLinkedQueue<String>> topics = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String,
+            ConcurrentMap<String, ConcurrentLinkedQueue<String>>> topics = new ConcurrentHashMap<>();
 
     @Override
     public Resp process(Req req) {
-        String topicName = req.getSourceName();
+        String topicName = req.getPoohMode();
+        String recipientName = req.getSourceName();
         String param = req.getParam();
 
         if ("POST".equals(req.httpRequestType())) {
-            addToTopic(topicName, param);
-            return new Resp(String.format("source name: %s, param: %s", req.getSourceName(), req.getParam()), "200");
+            addToTopic(topicName, recipientName, param);
+            return new Resp(String.format(
+                    "topic: %s, recipient: %s, param: %s",
+                    topicName, recipientName, param), "200");
         } else if ("GET".equals(req.httpRequestType())) {
-            String message = removeFromTopic(topicName);
-            return message != null ? new Resp(message, "200") : new Resp("", "200");
+            String message = removeFromTopic(topicName, recipientName);
+            return new Resp(message != null ? message : "", "200");
         }
+
         return new Resp("Invalid request", "400");
     }
 
-    private void addToTopic(String topicName, String message) {
-        topics.putIfAbsent(topicName, new ConcurrentLinkedQueue<>());
-        ConcurrentLinkedQueue<String> topic = topics.get(topicName);
-        topic.offer(message);
+    private void addToTopic(String topicName, String recipientName, String message) {
+        topics.putIfAbsent(topicName, new ConcurrentHashMap<>());
+        ConcurrentMap<String, ConcurrentLinkedQueue<String>> topic = topics.get(topicName);
+        topic.putIfAbsent(recipientName, new ConcurrentLinkedQueue<>());
+        ConcurrentLinkedQueue<String> recipientQueue = topic.get(recipientName);
+        recipientQueue.offer(message);
     }
 
-    private String removeFromTopic(String topicName) {
-        ConcurrentLinkedQueue<String> topic = topics.getOrDefault(topicName, null);
+    private String removeFromTopic(String topicName, String recipientName) {
+        ConcurrentMap<String, ConcurrentLinkedQueue<String>> topic = topics.getOrDefault(topicName, null);
         if (topic != null) {
-            return topic.poll();
+            ConcurrentLinkedQueue<String> recipientQueue = topic.getOrDefault(recipientName, null);
+            if (recipientQueue != null) {
+                return recipientQueue.poll();
+            }
         }
         return null;
     }
