@@ -36,9 +36,9 @@ public class TopicService implements Service {
     }
 
     private String removeFromTopic(String topicName, String recipientName) {
-        ConcurrentMap<String, ConcurrentLinkedQueue<String>> topic = topics.getOrDefault(topicName, null);
+        ConcurrentMap<String, ConcurrentLinkedQueue<String>> topic = topics.getOrDefault(topicName, new ConcurrentHashMap<>());
         if (topic != null) {
-            ConcurrentLinkedQueue<String> recipientQueue = topic.getOrDefault(recipientName, null);
+            ConcurrentLinkedQueue<String> recipientQueue = topic.getOrDefault(recipientName, new ConcurrentLinkedQueue<>());
             if (recipientQueue != null) {
                 return recipientQueue.poll();
             }
